@@ -465,3 +465,187 @@ export async function userHasRole(uid: string, expectedRole: MadrasaRole) {
   const payload = await response.json() as { users?: IdentityRecord[] };
   return parseRole(payload.users?.[0]?.customAttributes) === expectedRole;
 }
+
+/** M05: Cloudinary secrets stay server-only; clients receive only short-lived upload signatures and signed delivery URLs. */
+type CloudinaryAsset = {
+  public_id?: string;
+  secure_url?: string;
+  bytes?: number;
+  duration?: number;
+  format?: string;
+  version?: number;
+  resource_type?: string;
+  type?: string;
+};
+
+function cloudinaryCredentials() {
+  return {
+    cloudName: requiredEnvironment("CLOUDINARY_CLOUD_NAME"),
+    apiKey: requiredEnvironment("CLOUDINARY_API_KEY"),
+    apiSecret: requiredEnvironment("CLOUDINARY_API_SECRET"),
+  };
+}
+
+async function sha1Hex(value: string) {
+  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(value)));
+  return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function cloudinaryUploadSignature(values: Record<string, string>, apiSecret: string) {
+  const serialized = Object.entries(values).sort(([left], [right]) => left.localeCompare(right)).map(([key, value]) => `${key}=${value}`).join("&");
+  return sha1Hex(`${serialized}${apiSecret}`);
+}
+
+async function cloudinaryDeliverySignature(value: string, apiSecret: string) {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(`${value}${apiSecret}`)));
+  let binary = "";
+  digest.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_").slice(0, 8);
+}
+
+function encodedPublicId(publicId: string) {
+  return publicId.split("/").map(encodeURIComponent).join("/");
+}
+
+export async function createQuranAudioUploadSignature(input: { studentId: string }) {
+  const { cloudName, apiKey, apiSecret } = cloudinaryCredentials();
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const publicId = `al_ihsan_quran/${input.studentId}/QRS_${crypto.randomUUID()}`;
+  const values = { public_id: publicId, timestamp, type: "authenticated" };
+  return {
+    cloudName,
+    apiKey,
+    timestamp,
+    signature: await cloudinaryUploadSignature(values, apiSecret),
+    publicId,
+    uploadUrl: `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/video/upload`,
+    deliveryType: "authenticated",
+  };
+}
+
+export async function getCloudinaryAuthenticatedAudio(publicId: string) {
+  const { cloudName, apiKey, apiSecret } = cloudinaryCredentials();
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/resources/video/authenticated/${encodeURIComponent(publicId)}`, {
+    headers: { authorization: `Basic ${btoa(`${apiKey}:${apiSecret}`)}` },
+  });
+  if (!response.ok) throw new Error("Uploaded audio could not be verified.");
+  return response.json() as Promise<CloudinaryAsset>;
+}
+
+export async function createSignedQuranAudioUrl(input: { publicId: string; format: string; version?: number }) {
+  const { cloudName, apiSecret } = cloudinaryCredentials();
+  const rawTail = `${input.version ? `v${input.version}/` : ""}${input.publicId}.${input.format}`;
+  const signed = await cloudinaryDeliverySignature(rawTail, apiSecret);
+  const encodedTail = `${input.version ? `v${input.version}/` : ""}${encodedPublicId(input.publicId)}.${encodeURIComponent(input.format)}`;
+  return `https://res.cloudinary.com/${encodeURIComponent(cloudName)}/video/authenticated/s--${signed}--/${encodedTail}`;
+}
+
+export async function createQuranSubmission(input: {
+  studentId: string;
+  batchId: string;
+  teacherId: string;
+  courseId: string;
+  surahName: string;
+  ayahRange: string;
+  audioPublicId: string;
+  audioUrl: string;
+  audioFormat: string;
+  audioVersion: number;
+  audioBytes: number;
+  audioDuration: number;
+}) {
+  const id = `QRS_${crypto.randomUUID()}`;
+  const timestamp = new Date().toISOString();
+  const fields: RecordFields = {
+    id,
+    studentId: input.studentId,
+    batchId: input.batchId,
+    teacherId: input.teacherId,
+    courseId: input.courseId,
+    surahName: input.surahName,
+    ayahRange: input.ayahRange,
+    audioUrl: input.audioUrl,
+    audioPublicId: input.audioPublicId,
+    audioFormat: input.audioFormat,
+    audioVersion: input.audioVersion,
+    audioBytes: input.audioBytes,
+    audioDuration: input.audioDuration,
+    submittedAt: timestamp,
+    evaluationStatus: "pending",
+    audioDeletedAt: null,
+    audioDeleteEligibleAt: null,
+    status: "active",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    createdBy: input.studentId,
+    updatedBy: input.studentId,
+  };
+  const response = await firestoreRequest(`/quran_submissions?documentId=${encodeURIComponent(id)}`, {
+    method: "POST",
+    body: JSON.stringify({ fields: fieldsForFirestore(fields) }),
+  });
+  if (!response.ok) throw new Error("Quran submission could not be saved.");
+  return decodeDocument(await response.json() as { name?: string; fields?: Record<string, Record<string, unknown>> });
+}
+
+export async function writeQuranSubmissionAudit(input: { actorUid: string; actorRole: MadrasaRole; action: string; targetUid: string; metadata: RecordFields }) {
+  const id = `AUD_${crypto.randomUUID()}`;
+  const timestamp = new Date().toISOString();
+  const fields: RecordFields = {
+    id,
+    action: input.action,
+    actorUid: input.actorUid,
+    targetUid: input.targetUid,
+    assignedRole: input.actorRole,
+    ...input.metadata,
+    status: "active",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    createdBy: input.actorUid,
+    updatedBy: input.actorUid,
+  };
+  const response = await firestoreRequest(`/platform_audit_logs?documentId=${encodeURIComponent(id)}`, {
+    method: "POST",
+    body: JSON.stringify({ fields: fieldsForFirestore(fields) }),
+  });
+  if (!response.ok) throw new Error("Submission audit log could not be created.");
+}
+
+export async function evaluateQuranSubmission(input: {
+  submissionId: string;
+  rating: "ভালো" | "মাঝারি" | "উন্নতি প্রয়োজন";
+  teacherComment: string;
+  actorUid: string;
+  actorRole: MadrasaRole;
+}) {
+  const transaction = await beginFirestoreTransaction();
+  const raw = await readDocumentInTransaction("quran_submissions", input.submissionId, transaction);
+  if (!raw) throw new Error("Quran submission was not found.");
+  const current = decodeDocument(raw);
+  if (current.status !== "active" || current.evaluationStatus !== "pending") throw new Error("This submission has already been evaluated or is unavailable.");
+  const timestamp = new Date().toISOString();
+  const eligibleAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+  const evaluation = { rating: input.rating, teacherComment: input.teacherComment, evaluatedAt: timestamp };
+  const updatedFields: RecordFields = {
+    teacherId: input.actorUid,
+    evaluation,
+    evaluationStatus: "evaluated",
+    audioDeleteEligibleAt: eligibleAt,
+    updatedAt: timestamp,
+    updatedBy: input.actorUid,
+  };
+  const submissionWrite = {
+    update: { name: documentName("quran_submissions", input.submissionId), fields: fieldsForFirestore(updatedFields) },
+    updateMask: { fieldPaths: Object.keys(updatedFields) },
+    currentDocument: raw.updateTime ? { updateTime: raw.updateTime } : undefined,
+  };
+  const auditWrite = immutableAuditWrite({
+    actorUid: input.actorUid,
+    actorRole: input.actorRole,
+    action: "quran_submission_evaluated",
+    targetUid: typeof current.studentId === "string" ? current.studentId : input.submissionId,
+    metadata: { submissionId: input.submissionId, batchId: typeof current.batchId === "string" ? current.batchId : "", rating: input.rating, audioDeleteEligibleAt: eligibleAt },
+  });
+  await commitFirestoreTransaction(transaction, [submissionWrite, auditWrite]);
+  return { ...current, ...updatedFields };
+}

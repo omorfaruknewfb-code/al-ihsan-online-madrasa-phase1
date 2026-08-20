@@ -27,6 +27,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Sync Cloudinary Worker secrets
+        run: |
+          printf '%s' "$CLOUDINARY_CLOUD_NAME" | pnpm exec wrangler secret put CLOUDINARY_CLOUD_NAME --config wrangler.jsonc
+          printf '%s' "$CLOUDINARY_API_KEY" | pnpm exec wrangler secret put CLOUDINARY_API_KEY --config wrangler.jsonc
+          printf '%s' "$CLOUDINARY_API_SECRET" | pnpm exec wrangler secret put CLOUDINARY_API_SECRET --config wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+
       - name: Deploy Cloudflare Worker
         run: pnpm run deploy
         env:

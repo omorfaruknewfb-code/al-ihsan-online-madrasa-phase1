@@ -78,6 +78,11 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /quran_submissions/{submissionId} {
+      allow get, list: if isAdmin() || isTeacherForBatch(resource.data.batchId) || (isActiveStudent() && resource.data.studentId == request.auth.uid);
+      allow create, update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
