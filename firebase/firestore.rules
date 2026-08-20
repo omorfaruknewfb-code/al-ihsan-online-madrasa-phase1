@@ -1,0 +1,85 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.role == 'super_admin';
+    }
+
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.role == 'super_admin' || request.auth.token.role == 'admin');
+    }
+
+    function isActiveStudent() {
+      return request.auth != null && request.auth.token.role == 'student' && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
+    }
+
+    function isTeacherForBatch(batchId) {
+      return request.auth != null && request.auth.token.role == 'teacher' && get(/databases/$(database)/documents/batches/$(batchId)).data.teacherUid == request.auth.uid;
+    }
+
+    function isActiveStudentInBatch(batchId) {
+      return isActiveStudent() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activeBatchId == batchId;
+    }
+
+    match /_system/phase1-test {
+      allow get, create, update: if isSuperAdmin();
+    }
+
+    match /users/{userId} {
+      allow get: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /platform_audit_logs/{auditId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /courses/{courseId} {
+      allow get, list: if isAdmin() || isActiveStudent();
+      allow create, update, delete: if false;
+    }
+
+    match /course_levels/{levelId} {
+      allow get, list: if isAdmin() || isActiveStudent();
+      allow create, update, delete: if false;
+    }
+
+    match /lessons/{lessonId} {
+      allow get, list: if isAdmin() || isActiveStudent();
+      allow create, update, delete: if false;
+    }
+
+    match /batches/{batchId} {
+      allow get, list: if isAdmin() || isActiveStudent();
+      allow create, update, delete: if false;
+    }
+
+    match /enrollments/{enrollmentId} {
+      allow get: if isAdmin() || (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /class_schedule/{classId} {
+      allow get, list: if isAdmin() || isTeacherForBatch(resource.data.batchId) || isActiveStudentInBatch(resource.data.batchId);
+      allow create, update, delete: if false;
+    }
+
+    match /notices/{noticeId} {
+      allow get, list: if isAdmin() || isTeacherForBatch(resource.data.batchId) || isActiveStudentInBatch(resource.data.batchId);
+      allow create, update, delete: if false;
+    }
+
+    match /attendance/{attendanceId} {
+      allow get, list: if isAdmin() || isTeacherForBatch(resource.data.batchId);
+      allow create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

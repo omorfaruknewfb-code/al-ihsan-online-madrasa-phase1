@@ -1,0 +1,34 @@
+# Phase 1 কাজের তালিকা
+
+- [x] `freelancerfarukmg@gmail.com` account-এ নতুন, পৃথক Firebase Spark Project তৈরি করা।
+- [x] Firebase Authentication-এ Email/Password sign-in provider সক্রিয় করা।
+- [x] Firestore Standard database `asia-south1` (Mumbai)-এ production-mode নিরাপত্তায় সক্রিয় করা।
+- [x] Firebase Web App SDK configuration সংগ্রহ করে Next.js environment template-এ যুক্ত করা।
+- [x] OpenNext Cloudflare adapter ও `nodejs_compat` দিয়ে public test Worker deploy করা।
+- [x] প্রথম Super Admin bootstrap ও Cloudflare secret configuration সম্পন্ন করে protected Firestore read/write test চালানো।
+- [x] `omorfaruknewfb@gmail.com`-কে Firebase user হিসেবে নিশ্চিত করে `super_admin` custom claim প্রয়োগ করা।
+- [x] `omorfaruknewfb@gmail.com`-এর জন্য Firebase Email/Password user তৈরি ও owner-controlled first-login workflow নিশ্চিত করা।
+- [x] মালিকের সদ্য তৈরি করা `omorfaruknewfb@gmail.com` Firebase user record যাচাই করা।
+- [x] প্রাপ্ত Firebase Admin credential-কে `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` Cloudflare Worker secret হিসেবে সংরক্ষণ করা এবং local copy অপসারণ করা।
+- [x] owner-authorized Firebase CLI session দিয়ে `_system/phase1-test`-এর সীমিত Firestore rule deploy করা।
+- [x] Cloudflare Workers ও OpenNext deployment configuration প্রস্তুত করা।
+- [x] Firebase Auth, Firestore read/write এবং role-সহ protected route সমন্বিত test deployment যাচাই করা।
+- [x] Role field ছাড়া Self-signup form তৈরি করে সব নতুন account-এ `role: "student"` ও `status: "pending_approval"` safe default নিশ্চিত করা।
+- [x] Email/Password login, password reset, show/hide control, `onIdTokenChanged()` এবং forced token refresh flow বাস্তবায়ন করা।
+- [x] Trusted server-only role-management route এবং M01 user/profile Firestore rules তৈরি করা।
+- [ ] Student pending-approval content access denial এবং non-admin role-management denial সরাসরি পরীক্ষা করা।
+- [x] Admin/Super Admin-এর জন্য form-based কুরআন Course, Level ও Lesson management তৈরি করা।
+- [x] Batch তৈরি, Teacher assign এবং Batch-ভিত্তিক enrollment structure বাস্তবায়ন করা।
+- [x] Self-signup Student-এর জন্য pending enrollment request ও server-side Admin/Super Admin approve/reject gate বাস্তবায়ন করা।
+- [x] M02 role-aware Firestore rules, active-status filter এবং audit log enforcement প্রয়োগ করা।
+- [ ] Cloudinary, YouTube এবং Jitsi setup-এর জন্য পৃথক integration তথ্য নিশ্চিত করা।
+- [x] M03-এর Live Class ও Recorded Class record model, random Jitsi room name এবং immutable audit write বাস্তবায়ন করা।
+- [x] Teacher-এর own-batch authorization, Admin/Super Admin access এবং Student enrollment-based class access server-side enforce করা।
+- [x] Batch-specific in-app notice ও Student-এর upcoming Live Class dashboard card বাস্তবায়ন করা।
+- [x] M03 Firestore rules deploy, production build এবং unauthenticated Class API boundary যাচাই করা।
+- [ ] M04-এর বাধ্যতামূলক `ATT_{batchId}_{YYYY-MM-DD}` attendance document ও complete batch status map বাস্তবায়ন করা।
+- [ ] Firestore REST transaction দিয়ে duplicate final submit এবং concurrent overwrite প্রতিরোধ করা।
+- [ ] Teacher-confirmed finalization lock, পৃথক correction action ও before/after audit trail বাস্তবায়ন করা।
+- [ ] Teacher/Admin attendance checklist, Student own-attendance view এবং batch size ৩০-এর বেশি warning বাস্তবায়ন করা।
+- [ ] M04 Firestore rules, production build, Worker deployment ও unauthorized API access যাচাই করা।
+- [ ] সর্বশেষ source, rules, configuration ও documentation-এর secret-free ZIP archive তৈরি ও মালিককে প্রদান করা।

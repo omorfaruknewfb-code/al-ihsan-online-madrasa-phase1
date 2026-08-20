@@ -1,0 +1,34 @@
+{
+  "build_command": "pnpm run build",
+  "capabilities": [],
+  "dev_command": "pnpm run dev",
+  "env_vars": {},
+  "experiments": null,
+  "git_remote": {
+    "repo_url": "https://7f0548f6b28a1758d9bf7be630d36cb4.artifacts.cloudflare.net/git/prod/hZyHEnQKxv9XDFDdh2DsuU.git",
+    "expiration": "2026-08-20T22:12:01.675Z",
+    "token": "art_v2_x_7717c48dae1022d8c104d6d655429f363014125e?expires=1787263921",
+    "backend": "GIT_BACKEND_ARTIFACTS"
+  },
+  "name": "al-ihsan-online-madrasa-phase1",
+  "path": "/home/ubuntu/al-ihsan-online-madrasa-phase1",
+  "port": 3000,
+  "secrets": {
+    "BUILT_IN_FORGE_API_KEY": "LLkhAD7ncD8sQWgVQEwASF",
+    "BUILT_IN_FORGE_API_URL": "https://forge.manus.ai",
+    "JWT_SECRET": "VrR6HvPe6ztrRfZ5khDdAu",
+    "OAUTH_SERVER_URL": "https://api.manus.im",
+    "OWNER_NAME": "MD. OMOR FARUK",
+    "OWNER_OPEN_ID": "bWaRqe85iwoq9ieHkwqkSf",
+    "VITE_ANALYTICS_ENDPOINT": "https://manus-analytics.com",
+    "VITE_ANALYTICS_WEBSITE_ID": "4b09a9f4-7319-49a7-bd6c-97893f204ccc",
+    "VITE_APP_ID": "hZyHEnQKxv9XDFDdh2DsuU",
+    "VITE_APP_LOGO": "",
+    "VITE_APP_TITLE": "আল-ইহসান অনলাইন মাদ্রাসা",
+    "VITE_FRONTEND_FORGE_API_KEY": "XWbhJR84SFgJv45g32oVsw",
+    "VITE_FRONTEND_FORGE_API_URL": "https://forge.manus.ai",
+    "VITE_OAUTH_PORTAL_URL": "https://manus.im"
+  },
+  "template_id": "web-static",
+  "test_command": "pnpm test"
+}

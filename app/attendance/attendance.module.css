@@ -1,0 +1,27 @@
+/* শান্ত প্রাঙ্গণ নকশা: attendance desk-এ তালিকার বদলে এক ব্যাচ/এক দিনের স্পষ্ট checklist, terracotta সতর্কতা ও paper cards ব্যবহৃত হয়। */
+.scope {}
+
+:global(.attendance-shell) { min-height:100vh; background:linear-gradient(135deg,#f7f2e8 0%,#edf2e9 100%); }
+:global(.attendance-main) { width:min(100% - 2.5rem,76rem); margin:0 auto; padding:clamp(3rem,7vw,6rem) 0; }
+:global(.attendance-main > h1) { max-width:16ch; font-size:clamp(2.3rem,5vw,4.5rem); }
+:global(.attendance-lede) { color:var(--muted); line-height:1.75; }
+:global(.attendance-controls) { display:grid; grid-template-columns:minmax(13rem,.8fr) minmax(12rem,.65fr) auto; gap:1rem; align-items:end; margin:2rem 0; padding:1.15rem; background:rgba(255,253,250,.72); border-left:4px solid var(--courtyard); }
+:global(.attendance-controls label) { display:grid; gap:.42rem; font-weight:700; }
+:global(.attendance-controls input), :global(.attendance-controls select), :global(.attendance-row select), :global(.attendance-row input) { width:100%; padding:.68rem .75rem; color:var(--ink); background:#fffdfa; border:1px solid var(--line); border-radius:.3rem; }
+:global(.attendance-warning) { margin:1rem 0; padding:1rem; color:#7f3d29; background:#f7e2d8; border-left:4px solid var(--terracotta); line-height:1.65; }
+:global(.attendance-summary) { display:flex; flex-wrap:wrap; gap:.55rem 1.2rem; margin:1rem 0; padding:1rem; background:rgba(255,253,250,.76); border:1px solid var(--line); }
+:global(.attendance-summary strong) { color:var(--courtyard); }
+:global(.attendance-panel), :global(.student-attendance-card) { padding:clamp(1.2rem,2.5vw,2rem); background:var(--paper); border:1px solid var(--line); border-radius:1.35rem .3rem 1.35rem .3rem; box-shadow:0 13px 34px rgba(23,50,77,.07); }
+:global(.attendance-panel h2), :global(.student-attendance-card h2) { margin:.25rem 0 1rem; font-size:clamp(1.45rem,3vw,2.1rem); }
+:global(.attendance-list) { display:grid; gap:.7rem; }
+:global(.attendance-row) { display:grid; grid-template-columns:minmax(13rem,1fr) minmax(10rem,.65fr) minmax(13rem,1fr) auto; gap:.75rem; align-items:end; padding:1rem; background:#f7f2e8; border-left:3px solid var(--courtyard); }
+:global(.attendance-row strong), :global(.attendance-row span) { display:block; }
+:global(.attendance-row span) { margin-top:.2rem; color:var(--muted); font-size:.9rem; }
+:global(.attendance-row label) { display:grid; gap:.35rem; color:var(--muted); font-size:.84rem; font-weight:700; }
+:global(.attendance-row button) { min-height:2.65rem; padding:.56rem .75rem; }
+:global(.attendance-finalized) { margin:1rem 0; padding:.85rem 1rem; color:var(--courtyard); background:#e3eee5; border-left:4px solid var(--courtyard); font-weight:700; }
+:global(.student-attendance-card) { max-width:42rem; margin-top:2rem; }
+:global(.attendance-status) { display:inline-flex; margin-top:.5rem; padding:.55rem .85rem; color:#fffdfa; background:var(--courtyard); border-radius:.25rem .25rem .65rem .25rem; font-weight:700; }
+:global(.attendance-status-empty) { background:var(--terracotta); }
+
+@media (max-width:760px) { :global(.attendance-main) { width:min(100% - 2rem,70rem); } :global(.attendance-controls), :global(.attendance-row) { grid-template-columns:1fr; } }
